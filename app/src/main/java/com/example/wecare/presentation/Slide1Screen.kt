@@ -1,10 +1,13 @@
 package com.example.wecare.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment as UiAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,50 +51,110 @@ fun Slide1Screen(navController: NavHostController) {
         }
     }
 
-    SwipeToDismissBox(
-        state = swipeState,
-
-    ) {
+    SwipeToDismissBox(state = swipeState) {
         Scaffold(
             timeText = { TimeText() }
         ) {
             ScalingLazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
-                    .padding(horizontal = 8.dp),
+                    .background(Color(0xFFE3F2FD)) // Light blue background
+                    .padding(8.dp),
                 horizontalAlignment = UiAlignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 item {
-                    if (isLoading) {
-                        Text("Loading...", color = Color.Black)
-                    } else {
-                        Text(
-                            text = resultText,
-                            color = Color.Black,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Based on your current vitals",
+                        color = Color.DarkGray,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    if (isLoading) {
+                        CircularProgressIndicator()
+                    } else {
+                        val isFit = resultText.contains("fit", ignoreCase = true) &&
+                                !resultText.contains("not", ignoreCase = true)
+
+                        val infiniteTransition = rememberInfiniteTransition()
+                        val scale by infiniteTransition.animateFloat(
+                            initialValue = 1f,
+                            targetValue = if (!isFit) 1.2f else 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            )
+                        )
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp),
+                            onClick = {}
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .background(Color(0xFFBBDEFB), shape = MaterialTheme.shapes.medium)
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                horizontalAlignment = UiAlignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = resultText,
+                                    color = Color.Black,
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+
+                                AnimatedVisibility(visible = true) {
+                                    if (isFit) {
+                                        Text(
+                                            text = "🎆🎇✨",
+                                            fontSize = 24.sp,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "👎",
+                                            fontSize = 28.sp,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.scale(scale)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(.05.dp))
                     Button(
                         onClick = { navController.navigate("slide2") },
                         modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth(0.6f)
+                            .fillMaxWidth(0.5f)
+                            .padding(top = 1.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF43A047), // Success Green
+                            contentColor = Color.White
+                        )
                     ) {
-                        Text("→", fontSize = 20.sp, color = Color.Black)
+                        Text("Continue →", fontSize = 14.sp)
                     }
                 }
             }
         }
     }
 }
+
 
 suspend fun fetchSlide1Prediction(): Slide1Response = withContext(Dispatchers.IO) {
     val url = URL("https://stopwatch-measure.onrender.com/predict")
