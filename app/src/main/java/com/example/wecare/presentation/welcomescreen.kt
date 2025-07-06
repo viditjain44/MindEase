@@ -55,7 +55,7 @@ fun WelcomeScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Welcome to WeCare!",
+                    text = "Welcome to MindEase!",
                     color = Color.White,
                     textAlign = TextAlign.Center,
                     fontSize = 18.sp,
@@ -63,7 +63,7 @@ fun WelcomeScreen(navController: NavHostController) {
                 )
 
                 Button(
-                    onClick = { navController.navigate("slide1") }, // ✅ updated for 3-slide flow
+                    onClick = { navController.navigate("slide1") },
                     shape = RectangleShape,
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent,

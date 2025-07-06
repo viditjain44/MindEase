@@ -26,19 +26,19 @@ fun Slide2Screen(navController: NavHostController) {
 
     val dismissState = rememberSwipeToDismissBoxState()
 
-    // Swipe-to-go-back support
+    // Go back on swipe
     LaunchedEffect(dismissState.currentValue) {
         if (dismissState.currentValue == SwipeToDismissValue.Dismissed) {
             navController.popBackStack()
         }
     }
 
-    // Fetch API
+    // API Call
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 val response = fetchFitnessPredictionSlide2()
-                resultText = "${response.message}\nConfidence: ${response.confidence}%"
+                resultText = "${response.message}\nConfidence: ${response.confidence}"
             } catch (e: Exception) {
                 resultText = "Error: ${e.message}"
             } finally {
@@ -53,7 +53,7 @@ fun Slide2Screen(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.White)
-                    .padding(horizontal = 12.dp),
+                    .padding(12.dp),
                 horizontalAlignment = UiAlignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -65,21 +65,12 @@ fun Slide2Screen(navController: NavHostController) {
                             resultText,
                             color = Color.Black,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(12.dp)
+                            modifier = Modifier.padding(8.dp)
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
 
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Button(onClick = { navController.popBackStack() }) {
-                                Text("←", color = Color.Black)
-                            }
-                            Button(onClick = { navController.navigate("slide3") }) {
-                                Text("→", color = Color.Black)
-                            }
-                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Navigate to slide3
                     }
                 }
             }
@@ -88,13 +79,13 @@ fun Slide2Screen(navController: NavHostController) {
 }
 
 suspend fun fetchFitnessPredictionSlide2(): Slide2Response = withContext(Dispatchers.IO) {
-    val url = URL("https://fitness-measure-6df8.onrender.com")
+    val url = URL("https://fitness-measure-6df8.onrender.com/predict")
 
     val params = JSONObject().apply {
-        put("bmi", Random.nextDouble(15.0, 30.0))
-        put("body_fat", Random.nextDouble(10.0, 30.0))
-        put("broad_jump", Random.nextDouble(1.5, 2.5))
-        put("sit_and_bend_forward", Random.nextDouble(10.0, 25.0))
+        put("bmi", Random.nextInt(18, 28))
+        put("body_fat", Random.nextInt(5, 20))
+        put("broad_jump", Random.nextInt(150, 250))
+        put("sit_and_bend_forward", Random.nextInt(0, 20))
         put("sit_ups_counts", Random.nextInt(10, 60))
     }
 
@@ -109,16 +100,16 @@ suspend fun fetchFitnessPredictionSlide2(): Slide2Response = withContext(Dispatc
     val json = JSONObject(responseText)
 
     return@withContext Slide2Response(
-        status = json.getString("status"),
+        is_fit = json.getBoolean("is_fit"),
         message = json.getString("message"),
         prediction_value = json.getInt("prediction_value"),
-        confidence = json.getDouble("confidence")
+        confidence = json.getString("confidence")
     )
 }
 
 data class Slide2Response(
-    val status: String,
+    val is_fit: Boolean,
     val message: String,
     val prediction_value: Int,
-    val confidence: Double
+    val confidence: String
 )
